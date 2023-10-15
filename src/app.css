@@ -1,0 +1,12 @@
+label.range {
+    font-weight: bold;
+}
+
+label#result {
+    font-size: 48;
+}
+
+button#generate {
+    font-weight: bold;
+    font-size: 18;
+}

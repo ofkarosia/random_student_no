@@ -1,0 +1,18 @@
+[package]
+name = "randno"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itoap = "1.0.1"
+rand = "0.8.5"
+serde = { version = "1.0.188", features = ["derive"] }
+vizia = {git = "https://github.com/vizia/vizia"}
+
+[profile.release]
+lto = true
+opt-level = "z"
+codegen-units = 1
+strip = "debuginfo"
