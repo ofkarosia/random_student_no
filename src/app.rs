@@ -1,3 +1,4 @@
+use bitcode::{Decode, Encode};
 use rand::Rng;
 use std::{
     num::{NonZeroU8, ParseIntError},
@@ -5,7 +6,7 @@ use std::{
 };
 use vizia::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Encode, Decode)]
 pub struct RangeInt(NonZeroU8);
 
 impl ToString for RangeInt {
@@ -29,13 +30,26 @@ impl Data for RangeInt {
     }
 }
 
+impl Default for RangeInt {
+    fn default() -> Self {
+        unsafe { Self(NonZeroU8::new_unchecked(1)) }
+    }
+}
+
 impl RangeInt {
     pub fn get(&self) -> u8 {
         self.0.get()
     }
 }
 
-#[derive(Lens)]
+#[derive(Debug, Default, Encode, Decode)]
+pub struct Config {
+    pub start: RangeInt,
+    pub end: RangeInt,
+    pub is_zh: bool,
+}
+
+#[derive(Lens, Default)]
 pub struct AppData {
     pub range_start: RangeInt,
     pub range_end: RangeInt,
@@ -49,19 +63,6 @@ impl AppData {
             Some(RangeInt(NonZeroU8::new_unchecked(
                 rand::thread_rng().gen_range(self.range_start.get()..=self.range_end.get()),
             )))
-        }
-    }
-}
-
-impl Default for AppData {
-    fn default() -> Self {
-        unsafe {
-            Self {
-                range_start: RangeInt(NonZeroU8::new_unchecked(1)),
-                range_end: RangeInt(NonZeroU8::new_unchecked(1)),
-                result: None,
-                button_disabled: false,
-            }
         }
     }
 }

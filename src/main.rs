@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use app::{AppData, AppEvent};
+use std::fs;
+
+use app::{AppData, AppEvent, Config};
 use vizia::prelude::*;
 
 mod app;
@@ -7,15 +9,49 @@ mod app;
 const ICON_GITHUB_LINK: &str = "\u{eade}";
 
 fn main() {
-    Application::new(|cx| {
+    let config_path = dirs::config_dir().unwrap().join("randno_rs\\config");
+    let config: Config = fs::read(config_path.as_path())
+        .map(|bytes| bitcode::decode(&bytes).unwrap_or_default())
+        .ok()
+        .unwrap_or_default();
+
+    Application::new(move |cx| {
         cx.add_stylesheet(include_style!("src/app.css"))
             .expect("Failed to load stylesheet");
         cx.add_translation(langid!("zh_CN"), include_str!("res/zh_CN.ftl").to_owned());
         cx.add_translation(langid!("en_US"), include_str!("res/en_US.ftl").to_owned());
 
-        cx.emit(EnvironmentEvent::SetThemeMode(ThemeMode::DarkMode));
+        cx.add_global_listener(move |cx, event| {
+            event.map(|window_event: &WindowEvent, _| {
+                if let WindowEvent::WindowClose = window_event {
+                    let range = Config {
+                        start: AppData::range_start.get(cx),
+                        end: AppData::range_end.get(cx),
+                        is_zh: cx.environment().locale.language.as_str() == "zh",
+                    };
 
-        AppData::default().build(cx);
+                    if !config_path.exists() {
+                        fs::create_dir_all(config_path.parent().unwrap()).unwrap();
+                    }
+
+                    fs::write(config_path.as_path(), bitcode::encode(&range).unwrap()).unwrap();
+                }
+            });
+        });
+
+        cx.emit(EnvironmentEvent::SetThemeMode(ThemeMode::DarkMode));
+        cx.emit(EnvironmentEvent::SetLocale(if config.is_zh {
+            langid!("zh_CN")
+        } else {
+            langid!("en_US")
+        }));
+
+        AppData {
+            range_start: config.start,
+            range_end: config.end,
+            ..Default::default()
+        }
+        .build(cx);
 
         HStack::new(cx, |cx| {
             HStack::new(cx, |cx| {
@@ -119,5 +155,5 @@ fn main() {
     })
     .min_inner_size(Some((260, 210)))
     .max_inner_size(Some((360, 210)))
-    .run()
+    .run();
 }
