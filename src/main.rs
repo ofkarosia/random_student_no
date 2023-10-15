@@ -4,6 +4,8 @@ use vizia::prelude::*;
 
 mod app;
 
+const ICON_GITHUB_LINK: &str = "\u{eade}";
+
 fn main() {
     Application::new(|cx| {
         cx.add_stylesheet(include_style!("src/app.css"))
@@ -81,25 +83,41 @@ fn main() {
         .row_between(Pixels(10.0))
         .height(Auto);
 
-        Button::new(
-            cx,
-            |cx| {
-                if cx.environment().locale.language.as_str() == "zh" {
-                    cx.emit(EnvironmentEvent::SetLocale(langid!("en_US")))
-                } else {
-                    cx.emit(EnvironmentEvent::SetLocale(langid!("zh_CN")))
-                }
-            },
-            |cx| Label::new(cx, Localized::new("lang")),
-        )
-        .size(Auto)
-        .left(Stretch(1.0));
+        HStack::new(cx, |cx| {
+            Button::new(
+                cx,
+                |_| {
+                    let _ = open::that_detached("https://github.com/ofkarosia/random_student_no");
+                },
+                |cx| Icon::new(cx, ICON_GITHUB_LINK),
+            )
+            .size(Auto)
+            .id("link");
+
+            Button::new(
+                cx,
+                |cx| {
+                    if cx.environment().locale.language.as_str() == "zh" {
+                        cx.emit(EnvironmentEvent::SetLocale(langid!("en_US")))
+                    } else {
+                        cx.emit(EnvironmentEvent::SetLocale(langid!("zh_CN")))
+                    }
+                },
+                |cx| Label::new(cx, Localized::new("lang")),
+            )
+            .size(Auto)
+            .left(Stretch(1.0));
+        })
+        .width(Stretch(1.0))
+        .height(Auto)
+        .col_between(Stretch(1.0))
+        .child_top(Stretch(1.0));
 
         Binding::new(cx, Environment::locale, |cx, _| {
             cx.emit(WindowEvent::SetTitle(Localized::new("title").get_val(cx)))
         })
     })
-    .min_inner_size(Some((260, 200)))
-    .max_inner_size(Some((360, 220)))
+    .min_inner_size(Some((260, 210)))
+    .max_inner_size(Some((360, 210)))
     .run()
 }

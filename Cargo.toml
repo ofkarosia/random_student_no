@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 itoap = "1.0.1"
+open = "5.0.0"
 rand = "0.8.5"
 serde = { version = "1.0.188", features = ["derive"] }
 vizia = {git = "https://github.com/vizia/vizia"}
